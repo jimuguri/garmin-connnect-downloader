@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+  <html>
+    <head>
+      <script src="lib/jquery-3.5.1.min.js"></script>
+      <link  href="styles/datepicker.css" rel="stylesheet">
+      <link  href="styles/popup.css" rel="stylesheet">
+      <script src="lib/datepicker.js"></script>
+      <script src="lib/moment.min.js"></script>
+    </head>
+    <body>
+      <div class="whole-content">
+      <!--<button id="changeColor"></button>-->
+        <h2>Garmin Connect Downloader</h2>
+        <div>
+          <div class="item">
+            <span>Download after this date</span>
+            <input type="text" class="startDate" data-toggle="datepicker">
+          </div>
+          <div class="item">
+            <div>Download data</div>
+            <label>Activity</label><input type="checkbox" class="checkActivity">
+            <label>Wellness</label><input type="checkbox" class="checkWellness">
+          </div>
+        </div>
+        
+        <!--
+        <div class="item">
+            <span>Download interval (seconds)</span>
+            <input type="text" class="intervalTime" value="1">
+        </div>
+        -->
+        <div class="item">
+          <div>Download directory</div>
+          <span>(valid only relative path from the default download directory)</span>
+          <input type="text" class="dlDirectory">
+        </div>
+        
+        <div class="item">
+          <span>Open Garmin Connect</span>
+          <div>
+            <a href="https://connect.garmin.com/modern/">Garmin Connect</a>
+          </div>
+        </div>
+        <div>
+          <p class="toggle-title">download</p>
+          <div class="toggle-switch">
+            <input id="toggle" class="toggle-input" type='checkbox' />
+            <label for="toggle" class="toggle-label">
+              <span></span>
+          </div> 
+        </div>
+      </div>
+      <script src="popup.js"></script>
+    </body>
+</html>

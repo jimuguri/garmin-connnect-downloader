@@ -1,0 +1,26 @@
+{
+    "name": "Garmin Connect Downloader",
+    "version": "1.0",
+    "description": "Download all activities and healthcare original data",
+    "permissions": [
+      "activeTab",
+      "declarativeContent", 
+      "storage", 
+      "downloads", 
+      "alarms", 
+      "*://connect.garmin.com/"],
+    "background": {
+      "scripts": ["lib/moment.min.js", "background.js"],
+      "persistent": true
+    },
+    "page_action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "32": "images/get_started32.png"
+      }
+    },
+   "icons": {
+      "48": "images/get_started48.png"
+    },
+    "manifest_version": 2
+}
