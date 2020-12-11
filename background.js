@@ -1,58 +1,42 @@
 chrome.runtime.onInstalled.addListener(function() {
-    chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-      chrome.declarativeContent.onPageChanged.addRules([{
-        conditions: [new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: {hostEquals: 'connect.garmin.com'},
-        })
-        ],
-            actions: [new chrome.declarativeContent.ShowPageAction()]
-      }]);
-    });
+  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+    chrome.declarativeContent.onPageChanged.addRules([{
+      conditions: [new chrome.declarativeContent.PageStateMatcher({
+        pageUrl: {hostEquals: 'connect.garmin.com'},
+      })
+      ],
+          actions: [new chrome.declarativeContent.ShowPageAction()]
+    }]);
+  });
 });
 
-chrome.runtime.onMessage.addListener(
-  function (request, sender, sendResponse) {
-     //switch (request.directive) {
-     //    case "start-dl":
-     if(request.directive == 'start-dl') {
-            //  開始日時から+1日しつづけて現在日付-1日までループでダウンロード実行
-            var current = moment();
-            var start = moment(request.startDate);
-
-            download(current, start, request.interval).then(result => {
-              sendResponse(result);
-            });
-     }
-      return true;
-  }
-);
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+  if(msg.toggled) {
+    chrome.browserAction.setIcon({path:"images/gcd_on_32.png"})
+  } else {
+    chrome.browserAction.setIcon({path:"images/gcd_off_32.png"})
+  };
+  sendResponse("ok");
+});
 
 /**
- * Set alarm when installing extension
- */
+* Set alarm when installing extension
+*/
 chrome.runtime.onInstalled.addListener(function (details) {
   console.log(details.reason);
   chrome.alarms.create("dl_fire", { "periodInMinutes": 1 });
   chrome.alarms.create("get_activity_list", { "periodInMinutes": 60, "delayInMinutes": 1 });
 });
 
-
-async function download(current, start, interval) {
-  return new Promise((resolve,reject) => {
-    while(current.isAfter(start)){
-      console.log('download start');
-    }
-    resolve("download complete");
-  })
-}
-
 /**
- * Set alarm for daily data download in the background.
- */
+* Set alarm for daily data download in the background.
+*/
 chrome.alarms.onAlarm.addListener(async function (alarm) {
     
   let _isStart = await getLocalStorageVal('isStart');
   let _isChecked = await getLocalStorageVal('checkWellness');
+
+  if(_isStart) chrome.browserAction.setIcon({path:"images/gcd_on_32.png"});
 
   if (_isStart.isStart && _isChecked.checkWellness && alarm.name == "dl_fire") {
 
@@ -71,54 +55,48 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
         filename: _dir.directory + "/" + urlDate + '.zip'
       });
       start = start.add(1, 'd');
-      chrome.storage.sync.set({start_date: start.format('YYYY-MM-DD')}, function() {
-        // Save next date to local storage
-      });
+      chrome.storage.sync.set({start_date: start.format('YYYY-MM-DD')});
     }
   }
 });
 
 /**
- * Set alarm for activity download in the background.
- */
+* Set alarm for activity download in the background.
+*/
 chrome.alarms.onAlarm.addListener(async function (alarm) {
-    
+  
   let _isStart = await getLocalStorageVal('isStart');
   let _isChecked = await getLocalStorageVal('checkActivity');
 
   if (_isStart.isStart && _isChecked.checkActivity && alarm.name == "dl_fire") {
     
-    var _unreadIds = await getLocalStorageVal("unread_activity_ids");
-    if(!("unread_activity_ids" in _unreadIds) || 
-      (("unread_activity_ids" in _unreadIds) && _unreadIds.unread_activity_ids == "[]")) {
-      return true;
-    }
-
-    ids = JSON.parse(_unreadIds.unread_activity_ids);
-
-    id = ids.pop();
-
-    if(id) {
-      var url = "https://connect.garmin.com/modern/proxy/download-service/files/activity/" + id;
-      var _dir = await getLocalStorageVal('directory');
-      chrome.downloads.download({
-        url: url, 
-        filename: _dir.directory + "/" + id + '.zip'
-      });
-      chrome.storage.sync.set({unread_activity_ids: JSON.stringify(ids)}, function() {
-        // Save updated id_list to local storage
-      });
-    }
-
-    chrome.storage.sync.set({last_read_activity_id: id}, function() {
-      // Save updated id_list to local storage
-    });
+  var _unreadIds = await getLocalStorageVal("unread_activity_ids");
+  if(!("unread_activity_ids" in _unreadIds) || 
+    (("unread_activity_ids" in _unreadIds) && _unreadIds.unread_activity_ids == "[]")) {
+    return true;
   }
+
+  ids = JSON.parse(_unreadIds.unread_activity_ids);
+
+  id = ids.pop();
+
+  if(id) {
+    var url = "https://connect.garmin.com/modern/proxy/download-service/files/activity/" + id;
+    var _dir = await getLocalStorageVal('directory');
+    chrome.downloads.download({
+      url: url, 
+      filename: _dir.directory + "/" + id + '.zip'
+    });
+    chrome.storage.sync.set({unread_activity_ids: JSON.stringify(ids)});
+  }
+
+  chrome.storage.sync.set({last_read_activity_id: id});
+}
 });
 
 /**
- * Set alarm for regular download in the background.
- */
+* Set alarm for regular download in the background.
+*/
 chrome.alarms.onAlarm.addListener(async function (alarm) {
   let _isStart = await getLocalStorageVal('isStart');
 
@@ -171,25 +149,22 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
       if(ids.length > 50) {
         ids.splice(0, ids.length - 50);
       }
-      console.log(ids); // TODO: delete
-      chrome.storage.sync.set({unread_activity_ids: JSON.stringify(ids)}, function() {
-        // Save next date to local storage
-      });
-      
+      console.log(ids);
+      chrome.storage.sync.set({unread_activity_ids: JSON.stringify(ids)});
     }
   }
 });
 
 /**
- * Get activity id list.
- * @param {number} start 
- * @param {number} limit 
- */
+* Get activity id list.
+* @param {number} start 
+* @param {number} limit 
+*/
 async function getActivityList(start, limit) {
   var url = "https://connect.garmin.com/modern/proxy/activitylist-service/activities/search/activities?" +
-          "limit=" + limit +
-          "&start=" + start +
-          "&_=" + moment().valueOf(); // unix timestamp (ms)
+        "limit=" + limit +
+        "&start=" + start +
+        "&_=" + moment().valueOf(); // unix timestamp (ms)
   var activityIds = [];
 
   return new Promise((resolve, reject) => {
@@ -197,37 +172,37 @@ async function getActivityList(start, limit) {
       credentials: 'include',
       mode: 'cors',
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.text();
-      })
-      .then(function(text){
-        const activities = JSON.parse(text);
-        activities.forEach(activity => {
-          activityIds.push(activity.activityId);
-        });
-      })
-      .then(function(){
-        resolve(activityIds);
-      })
-      .catch(ex => reject(ex))
-    });
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
+    .then(function(text){
+      const activities = JSON.parse(text);
+      activities.forEach(activity => {
+        activityIds.push(activity.activityId);
+      });
+    })
+    .then(function(){
+      resolve(activityIds);
+    })
+    .catch(ex => reject(ex))
+  });
 }
 
 /**
- * Get from local storage
- * @param {string} key 
- */
+* Get from local storage
+* @param {string} key 
+*/
 async function getLocalStorageVal(key) {
-  return new Promise((resolve, reject) => {
-    try {
-      chrome.storage.sync.get(key, function(value) {
-        resolve(value);
-      })
-    } catch (ex) {
-      reject(ex);
-    }
-  });
+return new Promise((resolve, reject) => {
+  try {
+    chrome.storage.sync.get(key, function(value) {
+      resolve(value);
+    })
+  } catch (ex) {
+    reject(ex);
+  }
+});
 }

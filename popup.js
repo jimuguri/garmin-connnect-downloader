@@ -94,4 +94,8 @@ $(".toggle-input").click(function toggleHandler(e) {
   chrome.storage.sync.set({isStart: toggled}, function() {
     console.log('isStart ' + toggled);
   });
+  // change icon
+  chrome.runtime.sendMessage({toggled: toggled}, function(response) {
+    console.log(response);
+  })
 });

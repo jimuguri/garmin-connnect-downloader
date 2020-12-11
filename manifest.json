@@ -1,26 +1,32 @@
 {
-    "name": "Garmin Connect Downloader",
-    "version": "1.0",
-    "description": "Download all activities and healthcare original data",
-    "permissions": [
-      "activeTab",
-      "declarativeContent", 
-      "storage", 
-      "downloads", 
-      "alarms", 
-      "*://connect.garmin.com/"],
-    "background": {
-      "scripts": ["lib/moment.min.js", "background.js"],
-      "persistent": true
-    },
-    "page_action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-        "32": "images/get_started32.png"
-      }
-    },
-   "icons": {
-      "48": "images/get_started48.png"
-    },
-    "manifest_version": 2
+  "name": "Garmin Connect Downloader",
+  "version": "1.0",
+  "description": "Download all activities and healthcare original data",
+  "permissions": [
+    "activeTab",
+    "declarativeContent", 
+    "storage", 
+    "downloads", 
+    "alarms", 
+    "*://connect.garmin.com/"],
+  "background": {
+    "scripts": ["lib/moment.min.js", "background.js"],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "images/gcd_off_32.png",
+      "32": "images/gcd_off_32.png",
+      "48": "images/gcd_off_48.png",
+      "128": "images/gcd_off_128.png"
+    }
+  },
+ "icons": {
+    "16":  "images/gcd_off_32.png",
+    "32": "images/gcd_off_32.png",
+    "48": "images/gcd_off_48.png",
+    "128": "images/gcd_off_128.png"
+  },
+  "manifest_version": 2
 }
